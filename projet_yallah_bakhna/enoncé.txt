@@ -1,0 +1,7 @@
+todo c'est un ensemble de taches on peut y mettre des etats
+
+Creer
+Lire
+Modifier
+supprimer
+Marquer comme terminé

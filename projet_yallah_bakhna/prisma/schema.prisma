@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator seed {
+  provider = "tsx"
+  output   = "prisma/seed.ts"
+}
+
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum StatusTache {
+  EN_ATTENTE
+  EN_COURS
+  TERMINE
+}
+
+enum PermissionType {
+  READ_ONLY
+  MODIFY_ONLY
+  FULL_ACCESS
+}
+
+enum ActionType {
+  READ
+  MODIFY
+  DELETE
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  nom               String
+  prenom            String
+  login             String             @unique
+  password          String
+  role              Role               @default(USER)
+  taches            Tache[]
+  tachePermissions  TachePermission[]
+  actionHistory     ActionHistory[]
+}
+
+model Tache {
+  id           Int                @id @default(autoincrement())
+  libelle      String
+  description  String?
+  status       StatusTache        @default(EN_ATTENTE)
+  userId       Int
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissions  TachePermission[]
+  attachments  TacheAttachment[]
+  actionHistory ActionHistory[]
+  audioUrl     String?
+
+  // 🆕 Champs à ajouter
+  dateDebut    DateTime?         
+  dateFin      DateTime?
+}
+
+
+model TachePermission {
+  id         Int            @id @default(autoincrement())
+  tacheId    Int
+  userId     Int
+  permission PermissionType
+  tache      Tache          @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([tacheId, userId])
+}
+model TacheAttachment {
+  id       Int    @id @default(autoincrement())
+  tacheId  Int
+  filename String
+  originalName String
+  mimetype String
+  size     Int
+  url      String
+  tache    Tache  @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model ActionHistory {
+  id        Int        @id @default(autoincrement())
+  tacheId   Int
+  userId    Int
+  action    ActionType
+  timestamp DateTime   @default(now())
+  tache     Tache      @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+
